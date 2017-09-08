@@ -96,6 +96,8 @@ public class BitcoinPaymentURITest {
     		.address("175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W")
     		.amount(50.0)
     		.message("Donation for project xyz")
+            .payer("PAYERSADDRESS")
+            .signature("SIGNATURE")
     		.parameter("foo", "bar")
     		.requiredParameter("fiz", "biz")
     		.build();
@@ -108,7 +110,7 @@ public class BitcoinPaymentURITest {
     	assertFalse(euro2PaymentURI.getParameters().get("foo").isRequired());
     	assertEquals(euro2PaymentURI.getParameters().get("fiz").getValue(), "biz");
     	assertTrue(euro2PaymentURI.getParameters().get("fiz").isRequired());
-//    	assertEquals(euro2PaymentURI.getURI(), "euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W?message=Donation%20for%20project%20xyz&amount=50.0&req-fiz=biz&foo=bar&label=Luke-Jr");
+    	assertEquals(euro2PaymentURI.getURI(), "euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50.0&signature=SIGNATURE&req-fiz=biz&foo=bar&message=Donation%20for%20project%20xyz&payer=PAYERSADDRESS");
     }
 
 }
