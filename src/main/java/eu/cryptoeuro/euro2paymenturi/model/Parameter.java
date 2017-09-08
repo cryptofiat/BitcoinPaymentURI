@@ -1,4 +1,4 @@
-package com.sandro.bitcoinpaymenturi.model;
+package eu.cryptoeuro.euro2paymenturi.model;
 
 public class Parameter {
 	

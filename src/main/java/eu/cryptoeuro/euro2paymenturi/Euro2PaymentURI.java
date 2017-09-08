@@ -1,4 +1,4 @@
-package com.sandro.bitcoinpaymenturi;
+package eu.cryptoeuro.euro2paymenturi;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -8,26 +8,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sandro.bitcoinpaymenturi.model.Parameter;
+import eu.cryptoeuro.euro2paymenturi.model.Parameter;
 
 /**
- * Java library to handle Bitcoin payment URI.
- * This library is based on the specification at the BIP 21.
- *
- * The BIT is available at: https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki
+ * Java library to handle Euro2 payment URI.
+ * based on SandroMachado/BitcoinPaymentURI implementation
  */
 
-public class BitcoinPaymentURI {
+public class Euro2PaymentURI {
 
-	private static final String SCHEME = "bitcoin:";
+	private static final String SCHEME = "euro2:";
+	private static final String ACTION = "payment";
+	private static final String ADDRESS_ACTION_DELIMITER = "/";
 	private static final String PARAMETER_AMOUNT = "amount";
-	private static final String PARAMETER_LABEL = "label";
+	private static final String PARAMETER_PAYER = "payer";
 	private static final String PARAMETER_MESSAGE = "message";
+	private static final String PARAMETER_SIGNATURE = "signature";
 
 	private final String address;
+
 	private final HashMap<String, Parameter> parameters;
 
-	private BitcoinPaymentURI(Builder builder) {
+	private Euro2PaymentURI(Builder builder) {
 		this.address = builder.address;
 
 		parameters = new HashMap<String, Parameter>();
@@ -36,12 +38,16 @@ public class BitcoinPaymentURI {
 			parameters.put(PARAMETER_AMOUNT, new Parameter(String.valueOf(builder.amount), false));
 		}
 
-		if (builder.label != null) {
-			parameters.put(PARAMETER_LABEL, new Parameter(builder.label, false));
-		}
-
 		if (builder.message != null) {
 			parameters.put(PARAMETER_MESSAGE, new Parameter(builder.message, false));
+		}
+
+		if (builder.signature != null) {
+			parameters.put(PARAMETER_SIGNATURE, new Parameter(builder.signature, false));
+		}
+
+		if (builder.payer != null) {
+			parameters.put(PARAMETER_PAYER, new Parameter(builder.payer, false));
 		}
 
 		if (builder.otherParameters != null) {
@@ -50,9 +56,9 @@ public class BitcoinPaymentURI {
 	}
 
 	/**
-	 * Gets the URI Bitcoin address.
+	 * Gets the URI Euro2 address.
 	 *
-	 * @return the URI Bitcoin address.
+	 * @return the URI Euro2 address.
 	 */
 
 	public String getAddress() {
@@ -69,22 +75,21 @@ public class BitcoinPaymentURI {
 		if (parameters.get(PARAMETER_AMOUNT) == null) {
 			return null;
 		}
-
 		return Double.valueOf(parameters.get(PARAMETER_AMOUNT).getValue());
 	}
 
-	/**
-	 * Gets the URI label.
-	 *
-	 * @return the URI label.
-	 */
-
-	public String getLabel() {
-		if (parameters.get(PARAMETER_LABEL) == null) {
+	public String getPayer() {
+		if (parameters.get(PARAMETER_PAYER) == null) {
 			return null;
 		}
+		return parameters.get(PARAMETER_PAYER).getValue();
+	}
 
-		return parameters.get(PARAMETER_LABEL).getValue();
+	public String getSignature() {
+		if (parameters.get(PARAMETER_SIGNATURE) == null) {
+			return null;
+		}
+		return parameters.get(PARAMETER_SIGNATURE).getValue();
 	}
 
 	/**
@@ -111,8 +116,9 @@ public class BitcoinPaymentURI {
 		HashMap<String, Parameter> filteredParameters = new HashMap<String, Parameter>(parameters);
 
 		filteredParameters.remove(PARAMETER_AMOUNT);
-		filteredParameters.remove(PARAMETER_LABEL);
 		filteredParameters.remove(PARAMETER_MESSAGE);
+		filteredParameters.remove(PARAMETER_PAYER);
+		filteredParameters.remove(PARAMETER_SIGNATURE);
 
 		return filteredParameters;
 	}
@@ -120,7 +126,7 @@ public class BitcoinPaymentURI {
 	/**
 	 * Gets the URI.
 	 *
-	 * @return a string with the URI. This string can be used to make a Bitcoin payment.
+	 * @return a string with the URI. This string can be used to make an Euro payment or payment request.
 	 */
 
 	public String getURI() {
@@ -154,18 +160,18 @@ public class BitcoinPaymentURI {
 			return null;
 		}
 
-		return String.format("%s%s%s", SCHEME, getAddress(), queryParameters == null ? "" : String.format("?%s", queryParameters));
+		return String.format("%s%s" + ADDRESS_ACTION_DELIMITER + "%s%s", SCHEME, getAddress(), ACTION, queryParameters == null ? "" : String.format("?%s", queryParameters));
 	}
 
 	/**
-	 * Parses a string to a Bitcoin payment URI.
+	 * Parses a string to a Euro2 payment URI.
 	 *
 	 * @param string The string to be parsed.
 	 *
-	 * @return a Bitcoin payment URI if the URI is valid, or null for an invalid string.
+	 * @return a Euro2 payment URI if the URI is valid, or null for an invalid string.
 	 */
 
-	public static BitcoinPaymentURI parse(String string) {
+	public static Euro2PaymentURI parse(String string) {
 		try {
 			string = URLDecoder.decode(string,  "UTF-8");
 		} catch (UnsupportedEncodingException e) {
@@ -186,25 +192,33 @@ public class BitcoinPaymentURI {
 			return null;
 		}
 
-		String bitcoinPaymentURIWithoutScheme = string.replaceFirst(SCHEME, "");
-        ArrayList<String> bitcoinPaymentURIElements = new ArrayList<>(Arrays.asList(bitcoinPaymentURIWithoutScheme.split("\\?")));
+		String euro2PaymentURIWithoutScheme = string.replaceFirst(SCHEME, "");
+        ArrayList<String> euro2PaymentURIElements = new ArrayList<>(Arrays.asList(euro2PaymentURIWithoutScheme.split("\\?")));
 
-        if (bitcoinPaymentURIElements.size() != 1 && bitcoinPaymentURIElements.size() != 2) {
+        if (euro2PaymentURIElements.size() != 1 && euro2PaymentURIElements.size() != 2) {
         	return null;
         }
 
-        if (bitcoinPaymentURIElements.get(0).length() == 0) {
+        if (euro2PaymentURIElements.get(0).length() == 0) {
         	return null;
         }
 
-        if (bitcoinPaymentURIElements.size() == 1) {
-        	return new Builder().address(bitcoinPaymentURIElements.get(0)).build();
+		String[] addressAndAction = euro2PaymentURIElements.get(0).split(ADDRESS_ACTION_DELIMITER);
+        String address;
+        if (addressAndAction.length != 2 || addressAndAction[1].isEmpty() || !addressAndAction[1].equals(ACTION)) {
+        	return null;
+		} else {
+        	address = addressAndAction[0];
+		}
+
+        if (euro2PaymentURIElements.size() == 1) {
+        	return new Builder().address(address).build();
         }
 
-        List<String> queryParametersList = Arrays.asList(bitcoinPaymentURIElements.get(1).split("&"));
+        List<String> queryParametersList = Arrays.asList(euro2PaymentURIElements.get(1).split("&"));
 
         if (queryParametersList.isEmpty()) {
-        	return new Builder().address(bitcoinPaymentURIElements.get(0)).build();
+        	return new Builder().address(address).build();
         }
 
         HashMap<String, String> queryParametersFiltered = new HashMap<String, String>();
@@ -214,50 +228,51 @@ public class BitcoinPaymentURI {
 
         	try {
             	queryParametersFiltered.put(queryParameter[0], queryParameter[1]);
-        	}catch(ArrayIndexOutOfBoundsException exception) {
+        	} catch (ArrayIndexOutOfBoundsException exception) {
         		exception.printStackTrace();
-
         		return null;
         	}
         }
 
-        Builder bitcoinPaymentURIBuilder = new Builder().address(bitcoinPaymentURIElements.get(0));
+        Builder euro2PaymentURIBuilder = new Builder().address(address);
 
         if (queryParametersFiltered.containsKey(PARAMETER_AMOUNT)) {
-        	bitcoinPaymentURIBuilder.amount(Double.valueOf(queryParametersFiltered.get(PARAMETER_AMOUNT)));
-
+        	euro2PaymentURIBuilder.amount(Double.valueOf(queryParametersFiltered.get(PARAMETER_AMOUNT)));
         	queryParametersFiltered.remove(PARAMETER_AMOUNT);
         }
 
-        if (queryParametersFiltered.containsKey(PARAMETER_LABEL)) {
-        	bitcoinPaymentURIBuilder.label(queryParametersFiltered.get(PARAMETER_LABEL));
-
-        	queryParametersFiltered.remove(PARAMETER_LABEL);
-        }
-
         if (queryParametersFiltered.containsKey(PARAMETER_MESSAGE)) {
-        	bitcoinPaymentURIBuilder.message(queryParametersFiltered.get(PARAMETER_MESSAGE));
-
+        	euro2PaymentURIBuilder.message(queryParametersFiltered.get(PARAMETER_MESSAGE));
         	queryParametersFiltered.remove(PARAMETER_MESSAGE);
         }
 
-		for (Map.Entry<String, String> entry : queryParametersFiltered.entrySet()) {
-			bitcoinPaymentURIBuilder.parameter(entry.getKey(), entry.getValue());
+		if (queryParametersFiltered.containsKey(PARAMETER_PAYER)) {
+			euro2PaymentURIBuilder.payer(queryParametersFiltered.get(PARAMETER_PAYER));
+			queryParametersFiltered.remove(PARAMETER_PAYER);
 		}
 
-		return bitcoinPaymentURIBuilder.build();
+		if (queryParametersFiltered.containsKey(PARAMETER_SIGNATURE)) {
+			euro2PaymentURIBuilder.signature(queryParametersFiltered.get(PARAMETER_SIGNATURE));
+			queryParametersFiltered.remove(PARAMETER_SIGNATURE);
+		}
+
+		for (Map.Entry<String, String> entry : queryParametersFiltered.entrySet()) {
+			euro2PaymentURIBuilder.parameter(entry.getKey(), entry.getValue());
+		}
+
+		return euro2PaymentURIBuilder.build();
 	}
 
 	public static class Builder{
-
 		private String address;
 		private Double amount;
-		private String label;
 		private String message;
+		private String payer;
+		private String signature;
 		private HashMap<String, Parameter> otherParameters;
 
 		/**
-		 * Returns a builder for the Bitcoin payment URI.
+		 * Returns a builder for the Euro2 payment URI.
 		 */
 
 		public Builder() {
@@ -292,20 +307,6 @@ public class BitcoinPaymentURI {
 		}
 
 		/**
-		 * Adds the label to the builder.
-		 *
-		 * @param label The label.
-		 *
-		 * @return the builder with the label.
-		 */
-
-		public Builder label(String label) {
-			this.label = label;
-
-			return this;
-		}
-
-		/**
 		 * Adds the message to the builder.
 		 *
 		 * @param message The message.
@@ -315,6 +316,18 @@ public class BitcoinPaymentURI {
 
 		public Builder message(String message) {
 			this.message = message;
+
+			return this;
+		}
+
+		public Builder payer(String payer) {
+			this.payer = payer;
+
+			return this;
+		}
+
+		public Builder signature(String signature) {
+			this.signature = signature;
 
 			return this;
 		}
@@ -364,13 +377,13 @@ public class BitcoinPaymentURI {
 		}
 
 		/**
-		 * Builds a Bitcoin payment URI.
+		 * Builds a Euro2 payment URI.
 		 *
-		 * @return a Bitcoin payment URI.
+		 * @return a Euro2 payment URI.
 		 */
 
-		public BitcoinPaymentURI build() {
-			return new BitcoinPaymentURI(this);
+		public Euro2PaymentURI build() {
+			return new Euro2PaymentURI(this);
 		}
 
 	}
