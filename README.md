@@ -1,6 +1,4 @@
-# Euro2PaymentURI
-[![Release](https://jitpack.io/v/SandroMachado/BitcoinPaymentURI.svg)](https://jitpack.io/#SandroMachado/BitcoinPaymentURI)
-[![Build Status](https://travis-ci.org/SandroMachado/BitcoinPaymentURI.svg?branch=master)](https://travis-ci.org/SandroMachado/BitcoinPaymentURI)
+### Euro2PaymentURI
 
 # Gradle Dependency
 
