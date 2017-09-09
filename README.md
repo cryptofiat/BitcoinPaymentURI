@@ -26,20 +26,21 @@ dependencies {
 
 ## Code
 
-Parse the URI `euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50&message=Donation%20for%20project%20xyz&payer=XXX333PAYERADDRESS&signature=REQUESTCREATORS_SIGNATURE`.
+Parse the URI `euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50&message=Donation%20for%20project%20xyz&payer=XXX333PAYERADDRESS&signature=REQUESTCREATORS_SIGNATURE&signature_type=ETH`.
 
 ```Java
-Euro2PaymentURI euro2PaymentURI = Euro2PaymentURI.parse("euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50&message=Donation%20for%20project%20xyz&payer=XXX333PAYERADDRESS&signature=REQUESTCREATORS_SIGNATURE");
+Euro2PaymentURI euro2PaymentURI = Euro2PaymentURI.parse("euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50&message=Donation%20for%20project%20xyz&payer=XXX333PAYERADDRESS&signature=REQUESTCREATORS_SIGNATURE&signature_type=ETH");
 
 euro2PaymentURI.getAddress(); \\ 175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W
 euro2PaymentURI.getAmount(); \\ 50
 euro2PaymentURI.getMessage(); \\ "Donation for project xyz"
 euro2PaymentURI.getPayer(); \\"XXX333PAYERADDRESS"
 euro2PaymentURI.getSignature(); \\"REQUESTCREATORS_SIGNATURE"
+euro2PaymentURI.getSignatureType();\\ SignatureType.ETH
 euro2PaymentURI.getParameters().size(); \\ 0
 ```
 
-Generate the following URI `euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50.0&signature=SIGNATURE&req-fiz=biz&foo=bar&message=Donation%20for%20project%20xyz&payer=PAYERSADDRESS`
+Generate the following URI `euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50.0&signature=SIGNATURE&req-fiz=biz&foo=bar&message=Donation%20for%20project%20xyz&payer=PAYERSADDRESS&signature_type=ETH`
 
 ```Java
 Euro2PaymentURI euro2PaymentURI = new Euro2PaymentURI.Builder()
@@ -50,5 +51,9 @@ Euro2PaymentURI euro2PaymentURI = new Euro2PaymentURI.Builder()
             .signature("SIGNATURE")
     		.parameter("foo", "bar")
     		.requiredParameter("fiz", "biz")
+    		.signatureType(SignatureType.ETH)
     		.build();
 ```
+
+## Signature types
+[Supported signature types](https://github.com/cryptofiat/euro2-payment-uri/blob/master/src/main/java/eu/cryptoeuro/euro2paymenturi/model/SignatureType.java)
