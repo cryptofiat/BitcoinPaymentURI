@@ -18,7 +18,7 @@ Them include the openalpr-android dependency:
 dependencies {
 
     // ... other dependencies here.    	
-    compile "com.github.cryptofiat:euro2-payment-uri:2.0"
+    compile "com.github.cryptofiat:euro2-payment-uri:2.1"
 }
 ```
 
