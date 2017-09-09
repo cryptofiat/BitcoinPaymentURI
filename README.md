@@ -44,15 +44,14 @@ Generate the following URI `euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amo
 
 ```Java
 Euro2PaymentURI euro2PaymentURI = new Euro2PaymentURI.Builder()
-    		.address("175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W")
-    		.amount(50.0)
-    		.message("Donation for project xyz")
-            .payer("PAYERSADDRESS")
-            .signature("SIGNATURE")
-    		.parameter("foo", "bar")
-    		.requiredParameter("fiz", "biz")
-    		.signatureType(SignatureType.ETH)
-    		.build();
+    .address("175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W")
+    .amount(50.0)
+    .message("Donation for project xyz")
+    .payer("PAYERSADDRESS")
+    .signature("SIGNATURE")
+    .parameter("foo", "bar")
+    .requiredParameter("fiz", "biz")
+    .signatureType(SignatureType.ETH).build();
 ```
 
 ## Signature types
