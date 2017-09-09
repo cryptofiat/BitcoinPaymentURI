@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 import eu.cryptoeuro.euro2paymenturi.model.Parameter;
+import eu.cryptoeuro.euro2paymenturi.model.SignatureType;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Java library to handle Euro2 payment URI.
  * based on SandroMachado/BitcoinPaymentURI implementation
  */
-
+@Slf4j
 public class Euro2PaymentURI {
 
 	private static final String SCHEME = "euro2:";
@@ -24,6 +26,7 @@ public class Euro2PaymentURI {
 	private static final String PARAMETER_PAYER = "payer";
 	private static final String PARAMETER_MESSAGE = "message";
 	private static final String PARAMETER_SIGNATURE = "signature";
+	private static final String PARAMETER_SIGNATURE_TYPE = "signature_type";
 
 	private final String address;
 
@@ -44,6 +47,10 @@ public class Euro2PaymentURI {
 
 		if (builder.signature != null) {
 			parameters.put(PARAMETER_SIGNATURE, new Parameter(builder.signature, false));
+		}
+
+		if (builder.signatureType != null) {
+			parameters.put(PARAMETER_SIGNATURE_TYPE, new Parameter(builder.signatureType.name(), false));
 		}
 
 		if (builder.payer != null) {
@@ -92,6 +99,13 @@ public class Euro2PaymentURI {
 		return parameters.get(PARAMETER_SIGNATURE).getValue();
 	}
 
+	public SignatureType getSignatureType() {
+		if (parameters.get(PARAMETER_SIGNATURE_TYPE) == null) {
+			return null;
+		}
+		return SignatureType.findByName(parameters.get(PARAMETER_SIGNATURE_TYPE).getValue());
+	}
+
 	/**
 	 * Gets the URI message.
 	 *
@@ -119,6 +133,7 @@ public class Euro2PaymentURI {
 		filteredParameters.remove(PARAMETER_MESSAGE);
 		filteredParameters.remove(PARAMETER_PAYER);
 		filteredParameters.remove(PARAMETER_SIGNATURE);
+		filteredParameters.remove(PARAMETER_SIGNATURE_TYPE);
 
 		return filteredParameters;
 	}
@@ -176,19 +191,22 @@ public class Euro2PaymentURI {
 			string = URLDecoder.decode(string,  "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-
+			log.error("Unable to decode");
 			return null;
 		}
 
 		if (string == null) {
+			log.error("Uri iss missing");
 			return null;
 		}
 
 		if (string.isEmpty()) {
+			log.error("Uri value missing");
 			return null;
 		}
 
 		if (!string.toLowerCase().startsWith(SCHEME)) {
+			log.info("Wrong scheme, use: {}", SCHEME);
 			return null;
 		}
 
@@ -196,6 +214,7 @@ public class Euro2PaymentURI {
         ArrayList<String> euro2PaymentURIElements = new ArrayList<>(Arrays.asList(euro2PaymentURIWithoutScheme.split("\\?")));
 
         if (euro2PaymentURIElements.size() != 1 && euro2PaymentURIElements.size() != 2) {
+			log.error("?!");
         	return null;
         }
 
@@ -206,6 +225,7 @@ public class Euro2PaymentURI {
 		String[] addressAndAction = euro2PaymentURIElements.get(0).split(ADDRESS_ACTION_DELIMITER);
         String address;
         if (addressAndAction.length != 2 || addressAndAction[1].isEmpty() || !addressAndAction[1].equals(ACTION)) {
+			log.error("Uanble to parse address and action");
         	return null;
 		} else {
         	address = addressAndAction[0];
@@ -256,6 +276,16 @@ public class Euro2PaymentURI {
 			queryParametersFiltered.remove(PARAMETER_SIGNATURE);
 		}
 
+		if (queryParametersFiltered.containsKey(PARAMETER_SIGNATURE_TYPE)) {
+			SignatureType signatureType = SignatureType.findByName(queryParametersFiltered.get(PARAMETER_SIGNATURE_TYPE));
+			if (signatureType == null) {
+				log.error("Unsupported signature type. Supported values are: {}", SignatureType.values());
+				return null;
+			}
+			euro2PaymentURIBuilder.signatureType(signatureType);
+			queryParametersFiltered.remove(PARAMETER_SIGNATURE_TYPE);
+		}
+
 		for (Map.Entry<String, String> entry : queryParametersFiltered.entrySet()) {
 			euro2PaymentURIBuilder.parameter(entry.getKey(), entry.getValue());
 		}
@@ -269,6 +299,7 @@ public class Euro2PaymentURI {
 		private String message;
 		private String payer;
 		private String signature;
+		private SignatureType signatureType;
 		private HashMap<String, Parameter> otherParameters;
 
 		/**
@@ -288,7 +319,6 @@ public class Euro2PaymentURI {
 
 		public Builder address(String address) {
 			this.address = address;
-
 			return this;
 		}
 
@@ -302,7 +332,6 @@ public class Euro2PaymentURI {
 
 		public Builder amount(Double amount) {
 			this.amount = amount;
-
 			return this;
 		}
 
@@ -316,19 +345,21 @@ public class Euro2PaymentURI {
 
 		public Builder message(String message) {
 			this.message = message;
-
 			return this;
 		}
 
 		public Builder payer(String payer) {
 			this.payer = payer;
-
 			return this;
 		}
 
 		public Builder signature(String signature) {
 			this.signature = signature;
+			return this;
+		}
 
+		public Builder signatureType(SignatureType signatureType) {
+			this.signatureType = signatureType;
 			return this;
 		}
 

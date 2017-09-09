@@ -1,5 +1,6 @@
 package eu.cryptoeuro.euro2paymenturi.test;
 import eu.cryptoeuro.euro2paymenturi.Euro2PaymentURI;
+import eu.cryptoeuro.euro2paymenturi.model.SignatureType;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -48,14 +49,21 @@ public class Euro2PaymentURITest {
 
 	@Test
 	public void testParse() {
-		Euro2PaymentURI euro2PaymentURI = Euro2PaymentURI.parse("euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50&message=Donation%20for%20project%20xyz&payer=XXX333PAYERADDRESS&signature=REQUESTCREATORS_SIGNATURE");
+		Euro2PaymentURI euro2PaymentURI = Euro2PaymentURI.parse("euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50&message=Donation%20for%20project%20xyz&payer=XXX333PAYERADDRESS&signature=REQUESTCREATORS_SIGNATURE&signature_type=ETH");
 
 		assertEquals(euro2PaymentURI.getAddress(), "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W");
 		assertEquals(euro2PaymentURI.getAmount(), Double.valueOf(50));
 		assertEquals(euro2PaymentURI.getMessage(), "Donation for project xyz");
 		assertEquals(euro2PaymentURI.getPayer(), "XXX333PAYERADDRESS");
 		assertEquals(euro2PaymentURI.getSignature(), "REQUESTCREATORS_SIGNATURE");
+		assertEquals(euro2PaymentURI.getSignatureType(), SignatureType.ETH);
 		assertEquals(euro2PaymentURI.getParameters().size(), 0);
+	}
+
+	@Test
+	public void testParseUnsupportedSignatureType() {
+		Euro2PaymentURI euro2PaymentURI = Euro2PaymentURI.parse("euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50&message=Donation%20for%20project%20xyz&payer=XXX333PAYERADDRESS&signature=REQUESTCREATORS_SIGNATURE&signature_type=x509+sha256");
+		assertNull(euro2PaymentURI);
 	}
 
     @Test
@@ -100,6 +108,7 @@ public class Euro2PaymentURITest {
             .signature("SIGNATURE")
     		.parameter("foo", "bar")
     		.requiredParameter("fiz", "biz")
+			.signatureType(SignatureType.ETH)
     		.build();
 
     	assertEquals(euro2PaymentURI.getAddress(), "175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W");
@@ -110,7 +119,7 @@ public class Euro2PaymentURITest {
     	assertFalse(euro2PaymentURI.getParameters().get("foo").isRequired());
     	assertEquals(euro2PaymentURI.getParameters().get("fiz").getValue(), "biz");
     	assertTrue(euro2PaymentURI.getParameters().get("fiz").isRequired());
-    	assertEquals(euro2PaymentURI.getURI(), "euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50.0&signature=SIGNATURE&req-fiz=biz&foo=bar&message=Donation%20for%20project%20xyz&payer=PAYERSADDRESS");
+    	assertEquals(euro2PaymentURI.getURI(), "euro2:175tWpb8K1S7NmH4Zx6rewF9WQrcZv245W/payment?amount=50.0&signature=SIGNATURE&req-fiz=biz&foo=bar&message=Donation%20for%20project%20xyz&payer=PAYERSADDRESS&signature_type=ETH");
     }
 
 }

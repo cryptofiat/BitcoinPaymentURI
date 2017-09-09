@@ -3,14 +3,17 @@ apply plugin: 'maven'
 
 group = 'eu.cryptoeuro.euro2paymenturi'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'org.slf4j:slf4j-simple:1.6.2'
+    compile 'org.projectlombok:lombok:1.16.4'
     testCompile 'junit:junit:4.12'
 }
 
